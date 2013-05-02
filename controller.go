@@ -20,14 +20,14 @@ const (
 )
 
 type Controller struct {
-	ButtonState [16]Word
+	ButtonState [16]uint8
 	StrobeState int
-	LastWrite   Word
+	LastWrite   uint8
 	LastYAxis   [2]int
 	LastXAxis   [2]int
 }
 
-func (c *Controller) SetJoypadAxisState(a, d int, v Word, offset int) {
+func (c *Controller) SetJoypadAxisState(a, d int, v uint8, offset int) {
 	resetAxis := func(d, i int) {
 		switch d {
 		case 0:
@@ -77,7 +77,7 @@ func (c *Controller) SetJoypadAxisState(a, d int, v Word, offset int) {
 	}
 }
 
-func (c *Controller) SetJoypadButtonState(k int, v Word, offset int) {
+func (c *Controller) SetJoypadButtonState(k int, v uint8, offset int) {
 	switch k {
 	case JoypadButtonA: // A
 		c.ButtonState[0+offset] = v
@@ -90,7 +90,7 @@ func (c *Controller) SetJoypadButtonState(k int, v Word, offset int) {
 	}
 }
 
-func (c *Controller) SetButtonState(k sdl.KeyboardEvent, v Word, offset int) {
+func (c *Controller) SetButtonState(k sdl.KeyboardEvent, v uint8, offset int) {
 	switch k.Keysym.Sym {
 	case sdl.K_z: // A
 		c.ButtonState[0+offset] = v
@@ -135,7 +135,7 @@ func (c *Controller) KeyUp(e sdl.KeyboardEvent, offset int) {
 	c.SetButtonState(e, 0x40, offset)
 }
 
-func (c *Controller) Write(v Word) {
+func (c *Controller) Write(v uint8) {
 	if v == 0 && c.LastWrite == 1 {
 		// 0x4016 writes manage strobe state for
 		// both controllers. 0x4017 is reserved for
@@ -147,7 +147,7 @@ func (c *Controller) Write(v Word) {
 	c.LastWrite = v
 }
 
-func (c *Controller) Read() (r Word) {
+func (c *Controller) Read() (r uint8) {
 	if c.StrobeState < 8 {
 		r = ((c.ButtonState[c.StrobeState+8] & 1) << 1) | c.ButtonState[c.StrobeState]
 	} else if c.StrobeState == 18 {
@@ -222,11 +222,6 @@ func ReadInput(r chan [2]int, i chan int) {
 				switch e.Keysym.Sym {
 				case sdl.K_ESCAPE:
 					running = false
-				case sdl.K_r:
-					// Trigger reset interrupt
-					if e.Type == sdl.KEYDOWN {
-						cpu.RequestInterrupt(InterruptReset)
-					}
 				case sdl.K_l:
 					if e.Type == sdl.KEYDOWN {
 						i <- LoadState
@@ -243,10 +238,6 @@ func ReadInput(r chan [2]int, i chan int) {
 				case sdl.K_o:
 					if e.Type == sdl.KEYDOWN {
 						ppu.OverscanEnabled = !ppu.OverscanEnabled
-					}
-				case sdl.K_i:
-					if e.Type == sdl.KEYDOWN {
-						audioEnabled = !audioEnabled
 					}
 				case sdl.K_1:
 					if e.Type == sdl.KEYDOWN {

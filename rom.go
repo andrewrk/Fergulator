@@ -14,14 +14,14 @@ const (
 )
 
 type Mapper interface {
-	Write(v Word, a int)
+	Write(v uint8, a int)
 	BatteryBacked() bool
 }
 
 // Nrom
 type Rom struct {
-	RomBanks  [][]Word
-	VromBanks [][]Word
+	RomBanks  [][]uint8
+	VromBanks [][]uint8
 
 	PrgBankCount int
 	ChrRomCount  int
@@ -32,24 +32,7 @@ type Rom struct {
 type Unrom Rom
 type Cnrom Rom
 
-func WriteRamBank(rom [][]Word, bank, dest, size int) {
-	bank %= len(rom)
-
-	for i := 0; i < size; i++ {
-		Ram[i+dest] = rom[bank][i]
-	}
-}
-
-// Used by MMC3 for selecting 8kb chunks of a PRG-ROM bank
-func WriteOffsetRamBank(rom [][]Word, bank, dest, size, offset int) {
-	bank %= len(rom)
-
-	for i := 0; i < size; i++ {
-		Ram[i+dest] = rom[bank][i+offset]
-	}
-}
-
-func WriteVramBank(rom [][]Word, bank, dest, size int) {
+func WriteVramBank(rom [][]uint8, bank, dest, size int) {
 	bank %= len(rom)
 
 	for i := 0; i < size; i++ {
@@ -57,7 +40,7 @@ func WriteVramBank(rom [][]Word, bank, dest, size int) {
 	}
 }
 
-func WriteOffsetVramBank(rom [][]Word, bank, dest, size, offset int) {
+func WriteOffsetVramBank(rom [][]uint8, bank, dest, size, offset int) {
 	bank %= len(rom)
 
 	for i := 0; i < size; i++ {
@@ -65,23 +48,11 @@ func WriteOffsetVramBank(rom [][]Word, bank, dest, size, offset int) {
 	}
 }
 
-func (m *Rom) Write(v Word, a int) {
-	// Nothing to do
-}
-
 func (m *Rom) BatteryBacked() bool {
 	return m.Battery
 }
 
-func (m *Unrom) Write(v Word, a int) {
-	WriteRamBank(m.RomBanks, int(v&0x7), 0x8000, Size16k)
-}
-
-func (m *Unrom) BatteryBacked() bool {
-	return m.Battery
-}
-
-func (m *Cnrom) Write(v Word, a int) {
+func (m *Cnrom) Write(v uint8, a int) {
 	bank := int(v&0x3) * 2
 	WriteVramBank(m.VromBanks, bank, 0x0000, Size4k)
 	WriteVramBank(m.VromBanks, bank+1, 0x1000, Size4k)
@@ -91,14 +62,14 @@ func (m *Cnrom) BatteryBacked() bool {
 	return m.Battery
 }
 
-func LoadRom(rom []byte) (m Mapper, e error) {
+func LoadRom(rom []byte) error {
 	r := new(Rom)
 
 	if string(rom[0:3]) != "NES" {
-		return m, errors.New("Invalid ROM file")
+		return errors.New("Invalid ROM file")
 
 		if rom[3] != 0x1a {
-			return m, errors.New("Invalid ROM file")
+			return errors.New("Invalid ROM file")
 		}
 	}
 
@@ -126,12 +97,12 @@ func LoadRom(rom []byte) (m Mapper, e error) {
 
 	r.Data = rom[16:]
 
-	r.RomBanks = make([][]Word, r.PrgBankCount)
+	r.RomBanks = make([][]uint8, r.PrgBankCount)
 	for i := 0; i < r.PrgBankCount; i++ {
 		// Move 16kb chunk to 16kb bank
-		bank := make([]Word, 0x4000)
+		bank := make([]uint8, 0x4000)
 		for x := 0; x < 0x4000; x++ {
-			bank[x] = Word(r.Data[(0x4000*i)+x])
+			bank[x] = uint8(r.Data[(0x4000*i)+x])
 		}
 
 		r.RomBanks[i] = bank
@@ -140,26 +111,19 @@ func LoadRom(rom []byte) (m Mapper, e error) {
 	// Everything after PRG-ROM
 	chrRom := r.Data[0x4000*len(r.RomBanks):]
 
-	r.VromBanks = make([][]Word, r.ChrRomCount*2)
+	r.VromBanks = make([][]uint8, r.ChrRomCount*2)
 	for i := 0; i < r.ChrRomCount*2; i++ {
 		// Move 16kb chunk to 16kb bank
-		bank := make([]Word, 0x1000)
+		bank := make([]uint8, 0x1000)
 		for x := 0; x < 0x1000; x++ {
-			bank[x] = Word(chrRom[(0x1000*i)+x])
+			bank[x] = uint8(chrRom[(0x1000*i)+x])
 		}
 
 		r.VromBanks[i] = bank
 	}
 
-	// Write the first ROM bank
-	WriteRamBank(r.RomBanks, 0, 0x8000, Size16k)
-
 	if r.PrgBankCount > 1 {
-		// and the last ROM bank
-		WriteRamBank(r.RomBanks, r.PrgBankCount-1, 0xC000, Size16k)
-	} else {
-		// Or write the first ROM bank to the upper region
-		WriteRamBank(r.RomBanks, 0, 0xC000, Size16k)
+		return errors.New("only 1 prg bank supported")
 	}
 
 	// If we have CHR-ROM, load the first two banks
@@ -175,7 +139,7 @@ func LoadRom(rom []byte) (m Mapper, e error) {
 	}
 
 	// Check mapper, get the proper type
-	mapper := (Word(rom[6])>>4 | (Word(rom[7]) & 0xF0))
+	mapper := (uint8(rom[6])>>4 | (uint8(rom[7]) & 0xF0))
 	fmt.Printf("Mapper: 0x%X -> ", mapper)
 	switch mapper {
 	case 0x00:
@@ -185,73 +149,14 @@ func LoadRom(rom []byte) (m Mapper, e error) {
 	case 0x41:
 		// NROM
 		fmt.Printf("NROM\n")
-		return r, nil
-	case 0x01:
-		// MMC1
-		fmt.Printf("MMC1\n")
-		m = &Mmc1{
-			RomBanks:     r.RomBanks,
-			VromBanks:    r.VromBanks,
-			PrgBankCount: r.PrgBankCount,
-			ChrRomCount:  r.ChrRomCount,
-			Battery:      r.Battery,
-			Data:         r.Data,
-			PrgSwapBank:  BankLower,
-		}
-	case 0x42:
-		fallthrough
-	case 0x02:
-		// Unrom
-		fmt.Printf("UNROM\n")
-		m = &Unrom{
-			RomBanks:     r.RomBanks,
-			VromBanks:    r.VromBanks,
-			PrgBankCount: r.PrgBankCount,
-			ChrRomCount:  r.ChrRomCount,
-			Battery:      r.Battery,
-			Data:         r.Data,
-		}
-	case 0x43:
-        fallthrough
-	case 0x03:
-		// Cnrom
-		fmt.Printf("CNROM\n")
-		m = &Cnrom{
-			RomBanks:     r.RomBanks,
-			VromBanks:    r.VromBanks,
-			PrgBankCount: r.PrgBankCount,
-			ChrRomCount:  r.ChrRomCount,
-			Battery:      r.Battery,
-			Data:         r.Data,
-		}
-	case 0x07:
-		// Anrom
-		fmt.Printf("ANROM\n")
-		m = &Anrom{
-			RomBanks:     r.RomBanks,
-			VromBanks:    r.VromBanks,
-			PrgBankCount: r.PrgBankCount,
-			ChrRomCount:  r.ChrRomCount,
-			Battery:      r.Battery,
-			Data:         r.Data,
-		}
-	case 0x09:
-		// MMC2
-		fmt.Printf("MMC2\n")
-		m = NewMmc2(r)
-	case 0x44:
-		fallthrough
-	case 0x04:
-		// MMC3
-		fmt.Printf("MMC3\n")
-		m = NewMmc3(r)
+		return nil
 	default:
 		// Unsupported
 		fmt.Printf("Unsupported\n")
-		return m, errors.New(fmt.Sprintf("Unsupported memory mapper: 0x%X", mapper))
+		return errors.New(fmt.Sprintf("Unsupported memory mapper: 0x%X", mapper))
 	}
 
 	fmt.Printf("-----------------\n")
 
-	return
+	return nil
 }

@@ -7,20 +7,20 @@ const (
 )
 
 type SpriteData struct {
-	Tiles        [256]Word
-	YCoordinates [256]Word
-	Attributes   [256]Word
-	XCoordinates [256]Word
+	Tiles        [256]uint8
+	YCoordinates [256]uint8
+	Attributes   [256]uint8
+	XCoordinates [256]uint8
 }
 
 type Flags struct {
-	BaseNametableAddress     Word
-	VramAddressInc           Word
-	SpritePatternAddress     Word
-	BackgroundPatternAddress Word
-	SpriteSize               Word
-	MasterSlaveSel           Word
-	NmiOnVblank              Word
+	BaseNametableAddress     uint8
+	VramAddressInc           uint8
+	SpritePatternAddress     uint8
+	BackgroundPatternAddress uint8
+	SpriteSize               uint8
+	MasterSlaveSel           uint8
+	NmiOnVblank              uint8
 }
 
 type Pixel struct {
@@ -41,15 +41,15 @@ type Masks struct {
 }
 
 type Registers struct {
-	Control          Word
-	Mask             Word
-	Status           Word
-	VramDataBuffer   Word
+	Control          uint8
+	Mask             uint8
+	Status           uint8
+	VramDataBuffer   uint8
 	VramAddress      int
 	VramLatch        int
 	SpriteRamAddress int
-	FineX            Word
-	Data             Word
+	FineX            uint8
+	Data             uint8
 	WriteLatch       bool
 	HighBitShift     uint16
 	LowBitShift      uint16
@@ -60,10 +60,10 @@ type Ppu struct {
 	Flags
 	Masks
 	SpriteData
-	Vram              [0xFFFF]Word
-	SpriteRam         [0x100]Word
+	Vram              [0xFFFF]uint8
+	SpriteRam         [0x100]uint8
 	Nametables        Nametable
-	PaletteRam        [0x20]Word
+	PaletteRam        [0x20]uint8
 	AttributeLocation [0x400]uint
 	AttributeShift    [0x400]uint
 	A12High           bool
@@ -119,7 +119,7 @@ func (p *Ppu) Init() chan []uint32 {
 	return p.Output
 }
 
-func (p *Ppu) PpuRegRead(a int) (Word, error) {
+func (p *Ppu) PpuRegRead(a int) (uint8, error) {
 	switch a & 0x7 {
 	case 0x2:
 		return p.ReadStatus()
@@ -132,7 +132,7 @@ func (p *Ppu) PpuRegRead(a int) (Word, error) {
 	return 0, nil
 }
 
-func (p *Ppu) PpuRegWrite(v Word, a int) {
+func (p *Ppu) PpuRegWrite(v uint8, a int) {
 	switch a & 0x7 {
 	case 0x0:
 		p.WriteControl(v)
@@ -149,14 +149,10 @@ func (p *Ppu) PpuRegWrite(v Word, a int) {
 	case 0x7:
 		p.WriteData(v)
 	}
-
-	if a == 0x4014 {
-		p.WriteDma(v)
-	}
 }
 
 // Writes to mirrored regions of VRAM
-func (p *Ppu) writeMirroredVram(a int, v Word) {
+func (p *Ppu) writeMirroredVram(a int, v uint8) {
 	if a >= 0x3F00 {
 		if a&0xF == 0 {
 			a = 0
@@ -215,12 +211,6 @@ func (p *Ppu) Step() {
 				p.setStatus(StatusVblankStarted)
 				p.CycleCount = 0
 			}
-
-			// $2000.7 enables/disables NMIs
-			if p.NmiOnVblank == 0x1 && !p.SuppressNmi {
-				// Request NMI
-				cpu.RequestInterrupt(InterruptNmi)
-			}
 			p.raster()
 		}
 	case p.Scanline == 260: // End of vblank
@@ -248,12 +238,6 @@ func (p *Ppu) Step() {
 		case 256:
 			if p.ShowBackground {
 				p.updateEndScanlineRegisters()
-			}
-		case 260:
-			if p.SpritePatternAddress == 0x1 && p.BackgroundPatternAddress == 0x0 {
-				if v, ok := rom.(*Mmc3); ok {
-					v.Hook()
-				}
 			}
 		}
 	case p.Scanline == -1:
@@ -334,7 +318,7 @@ func (p *Ppu) updateEndScanlineRegisters() {
 }
 
 // $2000
-func (p *Ppu) WriteControl(v Word) {
+func (p *Ppu) WriteControl(v uint8) {
 	p.Control = v
 
 	// Control flag
@@ -362,7 +346,7 @@ func (p *Ppu) WriteControl(v Word) {
 }
 
 // $2001
-func (p *Ppu) WriteMask(v Word) {
+func (p *Ppu) WriteMask(v uint8) {
 	p.Mask = v
 
 	// 76543210
@@ -385,8 +369,8 @@ func (p *Ppu) WriteMask(v Word) {
 	p.IntensifyBlues = (((v >> 7) & 0x01) == 0x01)
 }
 
-func (p *Ppu) clearStatus(s Word) {
-	current := Ram[0x2002]
+func (p *Ppu) clearStatus(s uint8) {
+	current := p.Registers.Status
 
 	switch s {
 	case StatusSpriteOverflow:
@@ -397,11 +381,11 @@ func (p *Ppu) clearStatus(s Word) {
 		current = current & 0x7F
 	}
 
-	Ram.WriteMirroredRam(current, 0x2002)
+	p.Registers.Status = current
 }
 
-func (p *Ppu) setStatus(s Word) {
-	current := Ram[0x2002]
+func (p *Ppu) setStatus(s uint8) {
+	current := p.Registers.Status
 
 	switch s {
 	case StatusSpriteOverflow:
@@ -412,13 +396,13 @@ func (p *Ppu) setStatus(s Word) {
 		current = current | 0x80
 	}
 
-	Ram.WriteMirroredRam(current, 0x2002)
+	p.Registers.Status = current
 }
 
 // $2002
-func (p *Ppu) ReadStatus() (s Word, e error) {
+func (p *Ppu) ReadStatus() (s uint8, e error) {
 	p.WriteLatch = true
-	s = Ram[0x2002]
+	s = p.Registers.Status
 
 	if p.Cycle == 1 && p.Scanline == 240 {
 		s &= 0x7F
@@ -435,12 +419,12 @@ func (p *Ppu) ReadStatus() (s Word, e error) {
 }
 
 // $2003
-func (p *Ppu) WriteOamAddress(v Word) {
+func (p *Ppu) WriteOamAddress(v uint8) {
 	p.SpriteRamAddress = int(v)
 }
 
 // $2004
-func (p *Ppu) WriteOamData(v Word) {
+func (p *Ppu) WriteOamData(v uint8) {
 	p.SpriteRam[p.SpriteRamAddress] = v
 
 	p.updateBufferedSpriteMem(p.SpriteRamAddress, v)
@@ -449,21 +433,7 @@ func (p *Ppu) WriteOamData(v Word) {
 	p.SpriteRamAddress %= 0x100
 }
 
-// $4014
-func (p *Ppu) WriteDma(v Word) {
-	// Halt the CPU for 512 cycles
-	cpu.CyclesToWait = 512
-
-	// Fill sprite RAM
-	addr := int(v) * 0x100
-	for i := 0; i < 0x100; i++ {
-		d, _ := Ram.Read(addr + i)
-		p.SpriteRam[i] = d
-		p.updateBufferedSpriteMem(i, d)
-	}
-}
-
-func (p *Ppu) updateBufferedSpriteMem(a int, v Word) {
+func (p *Ppu) updateBufferedSpriteMem(a int, v uint8) {
 	i := a / 4
 
 	switch a % 4 {
@@ -480,12 +450,12 @@ func (p *Ppu) updateBufferedSpriteMem(a int, v Word) {
 }
 
 // $2004
-func (p *Ppu) ReadOamData() (Word, error) {
+func (p *Ppu) ReadOamData() (uint8, error) {
 	return p.SpriteRam[p.SpriteRamAddress], nil
 }
 
 // $2005
-func (p *Ppu) WriteScroll(v Word) {
+func (p *Ppu) WriteScroll(v uint8) {
 	if p.WriteLatch {
 		p.VramLatch = p.VramLatch & 0x7FE0
 		p.VramLatch = p.VramLatch | ((int(v) & 0xF8) >> 3)
@@ -499,7 +469,7 @@ func (p *Ppu) WriteScroll(v Word) {
 }
 
 // $2006
-func (p *Ppu) WriteAddress(v Word) {
+func (p *Ppu) WriteAddress(v uint8) {
 	if p.WriteLatch {
 		p.VramLatch = p.VramLatch & 0xFF
 		p.VramLatch = p.VramLatch | ((int(v) & 0x3F) << 8)
@@ -513,7 +483,7 @@ func (p *Ppu) WriteAddress(v Word) {
 }
 
 // $2007
-func (p *Ppu) WriteData(v Word) {
+func (p *Ppu) WriteData(v uint8) {
 	if p.VramAddress > 0x3000 {
 		p.writeMirroredVram(p.VramAddress, v)
 	} else if p.VramAddress >= 0x2000 && p.VramAddress < 0x3000 {
@@ -521,22 +491,13 @@ func (p *Ppu) WriteData(v Word) {
 		p.Nametables.writeNametableData(p.VramAddress, v)
 	} else {
 		p.Vram[p.VramAddress&0x3FFF] = v
-		// MMC2 latch trigger
-		t := p.bgPatternTableAddress(p.Nametables.readNametableData(p.VramAddress))
-		triggerMapperLatch(t)
 	}
 
 	p.incrementVramAddress()
 }
 
-func triggerMapperLatch(i int) {
-	if v, ok := rom.(*Mmc2); ok {
-		v.LatchTrigger(i)
-	}
-}
-
 // $2007
-func (p *Ppu) ReadData() (r Word, err error) {
+func (p *Ppu) ReadData() (r uint8, err error) {
 	// Reads from $2007 are buffered with a
 	// 1-byte delay
 	if p.VramAddress >= 0x2000 && p.VramAddress < 0x3000 {
@@ -545,12 +506,6 @@ func (p *Ppu) ReadData() (r Word, err error) {
 	} else if p.VramAddress < 0x3F00 {
 		r = p.VramDataBuffer
 		p.VramDataBuffer = p.Vram[p.VramAddress]
-
-		if p.VramAddress < 0x2000 {
-			// MMC2 latch trigger
-			t := p.bgPatternTableAddress(p.Nametables.readNametableData(p.VramAddress))
-			triggerMapperLatch(t)
-		}
 	} else {
 		bufferAddress := p.VramAddress - 0x1000
 		switch {
@@ -566,12 +521,6 @@ func (p *Ppu) ReadData() (r Word, err error) {
 		}
 
 		r = p.PaletteRam[a&0x1F]
-
-		if p.VramAddress < 0x2000 {
-			// MMC2 latch trigger
-			t := p.bgPatternTableAddress(p.Nametables.readNametableData(p.VramAddress))
-			triggerMapperLatch(t)
-		}
 	}
 
 	p.incrementVramAddress()
@@ -610,7 +559,7 @@ func (p *Ppu) sprPatternTableAddress(i int) int {
 	return int(i)*0x10 + a
 }
 
-func (p *Ppu) bgPatternTableAddress(i Word) int {
+func (p *Ppu) bgPatternTableAddress(i uint8) int {
 	var a int
 	if p.BackgroundPatternAddress == 0x01 {
 		a = 0x1000
@@ -627,7 +576,7 @@ func (p *Ppu) renderTileRow() {
 
 	// Load first two tiles into shift registers at start, then load
 	// one per loop and shift the other back out
-	fetchTileAttributes := func() (uint16, uint16, Word) {
+	fetchTileAttributes := func() (uint16, uint16, uint8) {
 		attrAddr := 0x23C0 | (p.VramAddress & 0xC00) | int(p.AttributeLocation[p.VramAddress&0x3FF])
 		shift := p.AttributeShift[p.VramAddress&0x3FF]
 		attr := ((p.Nametables.readNametableData(attrAddr) >> shift) & 0x03) << 2
@@ -643,9 +592,6 @@ func (p *Ppu) renderTileRow() {
 		} else {
 			p.VramAddress++
 		}
-
-		// MMC2 latch trigger
-		triggerMapperLatch(p.bgPatternTableAddress(index))
 
 		return uint16(p.Vram[t]), uint16(p.Vram[t+8]), attr
 	}
@@ -737,7 +683,7 @@ func (p *Ppu) evaluateScanlineSprites(line int) {
 			if p.SpriteSize&0x01 != 0x0 {
 				// 8x16 Sprite
 				s := p.sprPatternTableAddress(int(t))
-				var tile []Word
+				var tile []uint8
 
 				top := p.Vram[s : s+16]
 				bottom := p.Vram[s+16 : s+32]
@@ -756,7 +702,7 @@ func (p *Ppu) evaluateScanlineSprites(line int) {
 
 				sprite0 := i == 0
 
-				p.decodePatternTile([]Word{tile[c%8], tile[(c%8)+8]},
+				p.decodePatternTile([]uint8{tile[c%8], tile[(c%8)+8]},
 					int(p.XCoordinates[i]),
 					ycoord,
 					p.sprPaletteEntry(uint(attrValue)),
@@ -766,7 +712,7 @@ func (p *Ppu) evaluateScanlineSprites(line int) {
 				s := p.sprPatternTableAddress(int(t))
 				tile := p.Vram[s : s+16]
 
-				p.decodePatternTile([]Word{tile[c], tile[c+8]},
+				p.decodePatternTile([]uint8{tile[c], tile[c+8]},
 					int(p.XCoordinates[i]),
 					ycoord,
 					p.sprPaletteEntry(uint(attrValue)),
@@ -785,7 +731,7 @@ func (p *Ppu) evaluateScanlineSprites(line int) {
 	}
 }
 
-func (p *Ppu) decodePatternTile(t []Word, x, y int, pal []Word, attr *Word, spZero bool, index int) {
+func (p *Ppu) decodePatternTile(t []uint8, x, y int, pal []uint8, attr *uint8, spZero bool, index int) {
 	var b uint
 	for b = 0; b < 8; b++ {
 		var xcoord int
@@ -817,7 +763,7 @@ func (p *Ppu) decodePatternTile(t []Word, x, y int, pal []Word, attr *Word, spZe
 		if fbRow < 0xF000 && !trans {
 			priority := (*attr >> 5) & 0x1
 
-			hit := (Ram[0x2002]&0x40 == 0x40)
+			hit := (p.Registers.Status&0x40 == 0x40)
 			if p.Palettebuffer[fbRow].Value != 0 && spZero && !hit {
 				// Since we render background first, if we're placing an opaque
 				// pixel here and the existing pixel is opaque, we've hit
@@ -845,7 +791,7 @@ func (p *Ppu) decodePatternTile(t []Word, x, y int, pal []Word, attr *Word, spZe
 	}
 }
 
-func (p *Ppu) bgPaletteEntry(a Word, pix uint16) (pal int) {
+func (p *Ppu) bgPaletteEntry(a uint8, pix uint16) (pal int) {
 	if pix == 0x0 {
 		return int(p.PaletteRam[0x00])
 	}
@@ -864,31 +810,31 @@ func (p *Ppu) bgPaletteEntry(a Word, pix uint16) (pal int) {
 	return
 }
 
-func (p *Ppu) sprPaletteEntry(a uint) (pal []Word) {
+func (p *Ppu) sprPaletteEntry(a uint) (pal []uint8) {
 	switch a {
 	case 0x0:
-		pal = []Word{
+		pal = []uint8{
 			p.PaletteRam[0x10],
 			p.PaletteRam[0x11],
 			p.PaletteRam[0x12],
 			p.PaletteRam[0x13],
 		}
 	case 0x1:
-		pal = []Word{
+		pal = []uint8{
 			p.PaletteRam[0x10],
 			p.PaletteRam[0x15],
 			p.PaletteRam[0x16],
 			p.PaletteRam[0x17],
 		}
 	case 0x2:
-		pal = []Word{
+		pal = []uint8{
 			p.PaletteRam[0x10],
 			p.PaletteRam[0x19],
 			p.PaletteRam[0x1A],
 			p.PaletteRam[0x1B],
 		}
 	case 0x3:
-		pal = []Word{
+		pal = []uint8{
 			p.PaletteRam[0x10],
 			p.PaletteRam[0x1D],
 			p.PaletteRam[0x1E],
