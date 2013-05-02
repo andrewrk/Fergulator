@@ -17,7 +17,6 @@ extern void rom_setppuscroll(uint8_t);
 */
 import "C"
 
-
 //export rom_ppustatus
 func rom_ppustatus() C.uint8_t {
 	v, _ := ppu.ReadStatus()
@@ -70,4 +69,3 @@ func StartCpu(cb func(int)) {
 	cycleCbFn = cb
 	C.rom_start()
 }
-

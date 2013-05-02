@@ -51,11 +51,11 @@ func (c *Controller) SetJoypadAxisState(a, d int, v uint8, offset int) {
 		case JoypadAxisUp: // Up
 			resetAxis(0, index)
 			c.ButtonState[4+offset] = v
-			c.LastYAxis[index] = 4+offset
+			c.LastYAxis[index] = 4 + offset
 		case JoypadAxisDown: // Down
 			resetAxis(0, index)
 			c.ButtonState[5+offset] = v
-			c.LastYAxis[index] = 5+offset
+			c.LastYAxis[index] = 5 + offset
 		default:
 			resetAxis(0, index)
 			c.LastYAxis[index] = -1
@@ -65,11 +65,11 @@ func (c *Controller) SetJoypadAxisState(a, d int, v uint8, offset int) {
 		case JoypadAxisLeft: // Left
 			resetAxis(1, index)
 			c.ButtonState[6+offset] = v
-			c.LastXAxis[index] = 6+offset
+			c.LastXAxis[index] = 6 + offset
 		case JoypadAxisRight: // Right
 			resetAxis(1, index)
 			c.ButtonState[7+offset] = v
-			c.LastXAxis[index] = 7+offset
+			c.LastXAxis[index] = 7 + offset
 		default:
 			resetAxis(1, index)
 			c.LastXAxis[index] = -1

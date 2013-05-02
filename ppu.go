@@ -119,38 +119,6 @@ func (p *Ppu) Init() chan []uint32 {
 	return p.Output
 }
 
-func (p *Ppu) PpuRegRead(a int) (uint8, error) {
-	switch a & 0x7 {
-	case 0x2:
-		return p.ReadStatus()
-	case 0x4:
-		return p.ReadOamData()
-	case 0x7:
-		return p.ReadData()
-	}
-
-	return 0, nil
-}
-
-func (p *Ppu) PpuRegWrite(v uint8, a int) {
-	switch a & 0x7 {
-	case 0x0:
-		p.WriteControl(v)
-	case 0x1:
-		p.WriteMask(v)
-	case 0x3:
-		p.WriteOamAddress(v)
-	case 0x4:
-		p.WriteOamData(v)
-	case 0x5:
-		p.WriteScroll(v)
-	case 0x6:
-		p.WriteAddress(v)
-	case 0x7:
-		p.WriteData(v)
-	}
-}
-
 // Writes to mirrored regions of VRAM
 func (p *Ppu) writeMirroredVram(a int, v uint8) {
 	if a >= 0x3F00 {
@@ -242,10 +210,10 @@ func (p *Ppu) Step() {
 		}
 	case p.Scanline == -1:
 		switch p.Cycle {
-        case 1:
+		case 1:
 			p.clearStatus(StatusSprite0Hit)
 			p.clearStatus(StatusSpriteOverflow)
-        case 304:
+		case 304:
 			// Copy scroll latch into VRAMADDR register
 			if p.ShowBackground || p.ShowSprites {
 				// p.VramAddress = (p.VramAddress) | (p.VramLatch & 0x41F)
