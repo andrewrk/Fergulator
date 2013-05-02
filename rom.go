@@ -20,7 +20,6 @@ type Mapper interface {
 
 // Nrom
 type Rom struct {
-	RomBanks  [][]uint8
 	VromBanks [][]uint8
 
 	PrgBankCount int
@@ -28,9 +27,6 @@ type Rom struct {
 	Battery      bool
 	Data         []byte
 }
-
-type Unrom Rom
-type Cnrom Rom
 
 func WriteVramBank(rom [][]uint8, bank, dest, size int) {
 	bank %= len(rom)
@@ -49,16 +45,6 @@ func WriteOffsetVramBank(rom [][]uint8, bank, dest, size, offset int) {
 }
 
 func (m *Rom) BatteryBacked() bool {
-	return m.Battery
-}
-
-func (m *Cnrom) Write(v uint8, a int) {
-	bank := int(v&0x3) * 2
-	WriteVramBank(m.VromBanks, bank, 0x0000, Size4k)
-	WriteVramBank(m.VromBanks, bank+1, 0x1000, Size4k)
-}
-
-func (m *Cnrom) BatteryBacked() bool {
 	return m.Battery
 }
 
@@ -97,19 +83,8 @@ func LoadRom(rom []byte) error {
 
 	r.Data = rom[16:]
 
-	r.RomBanks = make([][]uint8, r.PrgBankCount)
-	for i := 0; i < r.PrgBankCount; i++ {
-		// Move 16kb chunk to 16kb bank
-		bank := make([]uint8, 0x4000)
-		for x := 0; x < 0x4000; x++ {
-			bank[x] = uint8(r.Data[(0x4000*i)+x])
-		}
-
-		r.RomBanks[i] = bank
-	}
-
 	// Everything after PRG-ROM
-	chrRom := r.Data[0x4000*len(r.RomBanks):]
+	chrRom := r.Data[0x4000*r.PrgBankCount:]
 
 	r.VromBanks = make([][]uint8, r.ChrRomCount*2)
 	for i := 0; i < r.ChrRomCount*2; i++ {
@@ -120,10 +95,6 @@ func LoadRom(rom []byte) error {
 		}
 
 		r.VromBanks[i] = bank
-	}
-
-	if r.PrgBankCount > 1 {
-		return errors.New("only 1 prg bank supported")
 	}
 
 	// If we have CHR-ROM, load the first two banks
