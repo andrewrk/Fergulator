@@ -262,6 +262,7 @@ func main() {
 				}
 			default:
 				cycles = cpu.Step()
+				fmt.Printf("cycles %d\n", cycles)
 				totalCpuCycles += cycles
 
 				for i := 0; i < 3*cycles; i++ {

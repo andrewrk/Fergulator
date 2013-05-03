@@ -1,5 +1,7 @@
 package main
 
+//import "fmt"
+
 const (
 	InterruptNone = iota
 	InterruptIrq
@@ -179,7 +181,9 @@ func (c *Cpu) testAndSetOverflowSubtraction(a Word, b Word) {
 
 func (c *Cpu) immediateAddress() uint16 {
 	ProgramCounter++
-	return ProgramCounter - 1
+	v := ProgramCounter - 1
+	//fmt.Printf("immediate #$%02x\n", Ram[v])
+	return v
 }
 
 func (c *Cpu) absoluteAddress() (result uint16) {
@@ -189,14 +193,18 @@ func (c *Cpu) absoluteAddress() (result uint16) {
 	low, _ := Ram.Read(ProgramCounter)
 
 	ProgramCounter += 2
-	return (uint16(high) << 8) + uint16(low)
+	v := (uint16(high) << 8) + uint16(low)
+	//fmt.Printf("absolute $%04x\n", v)
+	return v
 }
 
 func (c *Cpu) zeroPageAddress() uint16 {
 	ProgramCounter++
 	res, _ := Ram.Read(ProgramCounter - 1)
 
-	return uint16(res)
+	v := uint16(res)
+	//fmt.Printf("zero page $%04x\n", v)
+	return v
 }
 
 func (c *Cpu) indirectAbsoluteAddress(addr uint16) (result uint16) {
@@ -214,6 +222,7 @@ func (c *Cpu) indirectAbsoluteAddress(addr uint16) (result uint16) {
 	il, _ := Ram.Read(laddr)
 
 	result = (uint16(ih) << 8) + uint16(il)
+	//fmt.Printf("indirect abs $%04x\n", result)
 	return
 }
 
@@ -236,13 +245,16 @@ func (c *Cpu) absoluteIndexedAddress(index Word) (result uint16) {
 	}
 
 	ProgramCounter += 2
+	//fmt.Printf("abs indexed $%04x\n", address)
 	return address
 }
 
 func (c *Cpu) zeroPageIndexedAddress(index Word) uint16 {
 	location, _ := Ram.Read(ProgramCounter)
 	ProgramCounter++
-	return uint16(location + index)
+	v := uint16(location + index)
+	//fmt.Printf("zero page indexed $%04x\n", v)
+	return v
 }
 
 func (c *Cpu) indexedIndirectAddress() uint16 {
@@ -256,7 +268,9 @@ func (c *Cpu) indexedIndirectAddress() uint16 {
 	high, _ := Ram.Read(location + 1)
 	low, _ := Ram.Read(location)
 
-	return (uint16(high) << 8) + uint16(low)
+	v := (uint16(high) << 8) + uint16(low)
+	//fmt.Printf("indexed indirect x $%04x\n", v)
+	return v
 }
 
 func (c *Cpu) indirectIndexedAddress() uint16 {
@@ -280,6 +294,7 @@ func (c *Cpu) indirectIndexedAddress() uint16 {
 	}
 
 	ProgramCounter++
+	//fmt.Printf("indirect indexed y $%04x\n", address)
 	return address
 }
 
@@ -295,6 +310,7 @@ func (c *Cpu) relativeAddress() (a uint16) {
 
 	a++
 
+	//fmt.Printf("relative $%04x\n", a)
 	return
 }
 
@@ -985,9 +1001,7 @@ func (c *Cpu) Step() int {
 
 	ProgramCounter++
 
-	if c.Verbose {
-		Disassemble(opcode, c, ProgramCounter)
-	}
+	Disassemble(opcode, c, ProgramCounter)
 
 	c.InstrOpcodes[opcode]()
 	c.Timestamp = (c.CycleCount * 15)

@@ -10,7 +10,7 @@ var (
 )
 
 func immediateAddress() int {
-	val, _ := Ram.Read(pc - 1)
+	val, _ := Ram.Read(pc)
 	return int(val)
 }
 
@@ -44,7 +44,7 @@ func absoluteIndexedAddress(index Word) (result int) {
 	high, _ := Ram.Read(pc + 1)
 	low, _ := Ram.Read(pc)
 
-	return (int(high) << 8) + int(low) + int(index)
+	return (int(high) << 8) + int(low)
 }
 
 func zeroPageIndexedAddress(index Word) int {
@@ -65,18 +65,13 @@ func indexedIndirectAddress() int {
 }
 
 func indirectIndexedAddress() int {
-	location, _ := Ram.Read(pc)
-
-	// Switch to an int (or more appropriately uint16) since we 
-	// will overflow when shifting the high byte
-	high, _ := Ram.Read(location + 1)
-	low, _ := Ram.Read(location)
-
-	return (int(high) << 8) + int(low) + int(c.Y)
+	val, _ := Ram.Read(pc)
+	return int(val)
 }
 
 func relativeAddress() int {
-	return 0
+	val, _ := Ram.Read(pc)
+	return int(pc + 1) + int(int8(val))
 }
 
 func accumulatorAddress() int {
@@ -87,281 +82,281 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	c = cpu
 	pc = p
 
-	fmt.Printf("0x%X: 0x%X ", pc-1, opcode)
+	//fmt.Printf("0x%x: 0x%x ", pc-1, opcode)
 
 	switch opcode {
 	// ADC
 	case 0x69:
-		fmt.Printf("ADC $%X\n", immediateAddress())
+		fmt.Printf("adc #$%02x\n", immediateAddress())
 	case 0x65:
-		fmt.Printf("ADC $%X\n", zeroPageAddress())
+		fmt.Printf("adc $%x\n", zeroPageAddress())
 	case 0x75:
-		fmt.Printf("ADC $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("adc $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0x6D:
-		fmt.Printf("ADC $%X\n", absoluteAddress())
+		fmt.Printf("adc $%x\n", absoluteAddress())
 	case 0x7D:
-		fmt.Printf("ADC $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("adc $%x,X\n", absoluteIndexedAddress(c.X))
 	case 0x79:
-		fmt.Printf("ADC $%X,Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("adc $%x,Y\n", absoluteIndexedAddress(c.Y))
 	case 0x61:
-		fmt.Printf("ADC ($%X,X)\n", indexedIndirectAddress())
+		fmt.Printf("adc ($%x,X)\n", indexedIndirectAddress())
 	case 0x71:
-		fmt.Printf("ADC ($%X),Y\n", indirectIndexedAddress())
+		fmt.Printf("adc ($%x),Y\n", indirectIndexedAddress())
 	// LDA
 	case 0xA9:
-		fmt.Printf("LDA $%X\n", immediateAddress())
+		fmt.Printf("lda #$%02x\n", immediateAddress())
 	case 0xA5:
-		fmt.Printf("LDA $%X\n", zeroPageAddress())
+		fmt.Printf("lda $%02x\n", zeroPageAddress())
 	case 0xB5:
-		fmt.Printf("LDA $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("lda $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0xAD:
-		fmt.Printf("LDA $%X\n", absoluteAddress())
+		fmt.Printf("lda $%04x\n", absoluteAddress())
 	case 0xBD:
-		fmt.Printf("LDA $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("lda $%04x, X\n", absoluteIndexedAddress(c.X))
 	case 0xB9:
-		fmt.Printf("LDA $%X,Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("lda $%04x, Y\n", absoluteIndexedAddress(c.Y))
 	case 0xA1:
-		fmt.Printf("LDA ($%X,X)\n", indexedIndirectAddress())
+		fmt.Printf("lda ($%02x, X)\n", indexedIndirectAddress())
 	case 0xB1:
-		fmt.Printf("LDA ($%X),Y\n", indirectIndexedAddress())
+		fmt.Printf("lda ($%02x), Y\n", indirectIndexedAddress())
 	// LDX
 	case 0xA2:
-		fmt.Printf("LDX $%X\n", immediateAddress())
+		fmt.Printf("ldx #$%02x\n", immediateAddress())
 	case 0xA6:
-		fmt.Printf("LDX $%X\n", zeroPageAddress())
+		fmt.Printf("ldx $%x\n", zeroPageAddress())
 	case 0xB6:
-		fmt.Printf("LDX $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("ldx $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0xAE:
-		fmt.Printf("LDX $%X\n", absoluteAddress())
+		fmt.Printf("ldx $%x\n", absoluteAddress())
 	case 0xBE:
-		fmt.Printf("LDX $%X,Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("ldx $%x,Y\n", absoluteIndexedAddress(c.Y))
 	// LDY
 	case 0xA0:
-		fmt.Printf("LDY $%X\n", immediateAddress())
+		fmt.Printf("ldy #$%02x\n", immediateAddress())
 	case 0xA4:
-		fmt.Printf("LDY $%X\n", zeroPageAddress())
+		fmt.Printf("ldy $%x\n", zeroPageAddress())
 	case 0xB4:
-		fmt.Printf("LDY $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("ldy $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0xAC:
-		fmt.Printf("LDY $%X\n", absoluteAddress())
+		fmt.Printf("ldy $%x\n", absoluteAddress())
 	case 0xBC:
-		fmt.Printf("LDY $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("ldy $%x,X\n", absoluteIndexedAddress(c.X))
 	// STA
 	case 0x85:
-		fmt.Printf("STA $%X\n", zeroPageAddress())
+		fmt.Printf("sta $%02x\n", zeroPageAddress())
 	case 0x95:
-		fmt.Printf("STA $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("sta $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0x8D:
-		fmt.Printf("STA $%X\n", absoluteAddress())
+		fmt.Printf("sta $%04x\n", absoluteAddress())
 	case 0x9D:
-		fmt.Printf("STA $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("sta $%04x, X\n", absoluteIndexedAddress(c.X))
 	case 0x99:
-		fmt.Printf("STA $%X,Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("sta $%04x, Y\n", absoluteIndexedAddress(c.Y))
 	case 0x81:
-		fmt.Printf("STA ($%X,X)\n", indexedIndirectAddress())
+		fmt.Printf("sta ($%02x, X)\n", indexedIndirectAddress())
 	case 0x91:
-		fmt.Printf("STA ($%X),Y\n", indirectIndexedAddress())
+		fmt.Printf("sta ($%02x), Y\n", indirectIndexedAddress())
 	// STX
 	case 0x86:
-		fmt.Printf("STX $%X\n", zeroPageAddress())
+		fmt.Printf("stx $%x\n", zeroPageAddress())
 	case 0x96:
-		fmt.Printf("STX $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("stx $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0x8E:
-		fmt.Printf("STX $%X\n", absoluteAddress())
+		fmt.Printf("stx $%x\n", absoluteAddress())
 	// STY
 	case 0x84:
-		fmt.Printf("STY $%X\n", zeroPageAddress())
+		fmt.Printf("sty $%02x\n", zeroPageAddress())
 	case 0x94:
-		fmt.Printf("STY $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("sty $%02x,x\n", zeroPageIndexedAddress(c.X))
 	case 0x8C:
-		fmt.Printf("STY $%X\n", absoluteAddress())
+		fmt.Printf("sty $%04x\n", absoluteAddress())
 	// JMP
 	case 0x4C:
-		fmt.Printf("JMP $%X\n", absoluteAddress())
+		fmt.Printf("jmp $%x\n", absoluteAddress())
 	case 0x6C:
-		fmt.Printf("JMP $%X\n", indirectAbsoluteAddress())
+		fmt.Printf("jmp $%x\n", indirectAbsoluteAddress())
 	// JSR
 	case 0x20:
-		fmt.Printf("JSR $%X\n", absoluteAddress())
+		fmt.Printf("jsr $%x\n", absoluteAddress())
 	// Register Instructions
 	case 0xAA:
-		fmt.Println("TAX")
+		fmt.Println("tax")
 	case 0x8A:
-		fmt.Println("TXA")
+		fmt.Println("txa")
 	case 0xCA:
-		fmt.Println("DEX")
+		fmt.Println("dex")
 	case 0xE8:
-		fmt.Println("INX")
+		fmt.Println("inx")
 	case 0xA8:
-		fmt.Println("TAY")
+		fmt.Println("tay")
 	case 0x98:
-		fmt.Println("TYA")
+		fmt.Println("tya")
 	case 0x88:
-		fmt.Println("DEY")
+		fmt.Println("dey")
 	case 0xC8:
-		fmt.Println("INY")
+		fmt.Println("iny")
 	// Branch Instructions
 	case 0x10:
-		fmt.Printf("BPL $%X\n", immediateAddress())
+		fmt.Printf("bpl $%04x\n", relativeAddress())
 	case 0x30:
-		fmt.Printf("BMI $%X\n", immediateAddress())
+		fmt.Printf("bmi $%04x\n", relativeAddress())
 	case 0x50:
-		fmt.Printf("BVC $%X\n", immediateAddress())
+		fmt.Printf("bvc $%04x\n", relativeAddress())
 	case 0x70:
-		fmt.Printf("BVS $%X\n", immediateAddress())
+		fmt.Printf("bvs $%04x\n", relativeAddress())
 	case 0x90:
-		fmt.Printf("BCC $%X\n", immediateAddress())
+		fmt.Printf("bcc $%04x\n", relativeAddress())
 	case 0xB0:
-		fmt.Printf("BCS $%X\n", immediateAddress())
+		fmt.Printf("bcs $%04x\n", relativeAddress())
 	case 0xD0:
-		fmt.Printf("BNE $%X\n", immediateAddress())
+		fmt.Printf("bne $%04x\n", relativeAddress())
 	case 0xF0:
-		fmt.Printf("BEQ $%X\n", immediateAddress())
+		fmt.Printf("beq $%04x\n", relativeAddress())
 	// CMP
 	case 0xC9:
-		fmt.Printf("CMP $%X\n", immediateAddress())
+		fmt.Printf("cmp #$%02x\n", immediateAddress())
 	case 0xC5:
-		fmt.Printf("CMP $%X\n", zeroPageAddress())
+		fmt.Printf("cmp $%x\n", zeroPageAddress())
 	case 0xD5:
-		fmt.Printf("CMP $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("cmp $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0xCD:
-		fmt.Printf("CMP $%X\n", absoluteAddress())
+		fmt.Printf("cmp $%x\n", absoluteAddress())
 	case 0xDD:
-		fmt.Printf("CMP $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("cmp $%x,X\n", absoluteIndexedAddress(c.X))
 	case 0xD9:
-		fmt.Printf("CMP $%X,Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("cmp $%x,Y\n", absoluteIndexedAddress(c.Y))
 	case 0xC1:
-		fmt.Printf("CMP ($%X,X)\n", indexedIndirectAddress())
+		fmt.Printf("cmp ($%x,X)\n", indexedIndirectAddress())
 	case 0xD1:
-		fmt.Printf("CMP ($%X),Y\n", c.indirectIndexedAddress())
+		fmt.Printf("cmp ($%x),Y\n", c.indirectIndexedAddress())
 	// CPX
 	case 0xE0:
-		fmt.Printf("CPX $%X\n", immediateAddress())
+		fmt.Printf("CPX $%x\n", immediateAddress())
 	case 0xE4:
-		fmt.Printf("CPX $%X\n", zeroPageAddress())
+		fmt.Printf("CPX $%x\n", zeroPageAddress())
 	case 0xEC:
-		fmt.Printf("CPX $%X\n", absoluteAddress())
+		fmt.Printf("CPX $%x\n", absoluteAddress())
 	// CPY
 	case 0xC0:
-		fmt.Printf("CPY $%X\n", immediateAddress())
+		fmt.Printf("CPY $%x\n", immediateAddress())
 	case 0xC4:
-		fmt.Printf("CPY $%X\n", zeroPageAddress())
+		fmt.Printf("CPY $%x\n", zeroPageAddress())
 	case 0xCC:
-		fmt.Printf("CPY $%X\n", absoluteAddress())
+		fmt.Printf("CPY $%x\n", absoluteAddress())
 	// SBC
 	case 0xE9:
-		fmt.Printf("SBC $%X\n", immediateAddress())
+		fmt.Printf("SBC $%x\n", immediateAddress())
 	case 0xE5:
-		fmt.Printf("SBC $%X\n", zeroPageAddress())
+		fmt.Printf("SBC $%x\n", zeroPageAddress())
 	case 0xF5:
-		fmt.Printf("SBC $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("SBC $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0xED:
-		fmt.Printf("SBC $%X\n", absoluteAddress())
+		fmt.Printf("SBC $%x\n", absoluteAddress())
 	case 0xFD:
-		fmt.Printf("SBC $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("SBC $%x,X\n", absoluteIndexedAddress(c.X))
 	case 0xF9:
-		fmt.Printf("SBC $%X,Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("SBC $%x,Y\n", absoluteIndexedAddress(c.Y))
 	case 0xE1:
-		fmt.Printf("SBC ($%X,X)\n", indexedIndirectAddress())
+		fmt.Printf("SBC ($%x,X)\n", indexedIndirectAddress())
 	case 0xF1:
-		fmt.Printf("SBC ($%X),Y\n", indirectIndexedAddress())
+		fmt.Printf("SBC ($%x),Y\n", indirectIndexedAddress())
 	// Flag Instructions
 	case 0x18:
-		fmt.Println("CLC")
+		fmt.Println("clc")
 	case 0x38:
-		fmt.Println("SEC")
+		fmt.Println("sec")
 	case 0x58:
-		fmt.Println("CLI")
+		fmt.Println("cli")
 	case 0x78:
-		fmt.Println("SEI")
+		fmt.Println("sei")
 	case 0xB8:
-		fmt.Println("CLV")
+		fmt.Println("clv")
 	case 0xD8:
-		fmt.Println("CLD")
+		fmt.Println("cld")
 	case 0xF8:
-		fmt.Println("SED")
+		fmt.Println("sed")
 	// Stack instructions
 	case 0x9A:
-		fmt.Println("TXS")
+		fmt.Println("txs")
 	case 0xBA:
-		fmt.Println("TSX")
+		fmt.Println("tsx")
 	case 0x48:
-		fmt.Println("PHA")
+		fmt.Println("pha")
 	case 0x68:
-		fmt.Println("PLA")
+		fmt.Println("pla")
 	case 0x08:
-		fmt.Println("PHP")
+		fmt.Println("php")
 	case 0x28:
-		fmt.Println("PLP")
+		fmt.Println("plp")
 	// AND
 	case 0x29:
-		fmt.Printf("AND $%X\n", immediateAddress())
+		fmt.Printf("and #$%02x\n", immediateAddress())
 	case 0x25:
-		fmt.Printf("AND $%X\n", zeroPageAddress())
+		fmt.Printf("and $%02x\n", zeroPageAddress())
 	case 0x35:
-		fmt.Printf("AND $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("and $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0x2d:
-		fmt.Printf("AND $%X\n", absoluteAddress())
+		fmt.Printf("and $%04x\n", absoluteAddress())
 	case 0x3d:
-		fmt.Printf("AND $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("and $%04x, X\n", absoluteIndexedAddress(c.X))
 	case 0x39:
-		fmt.Printf("AND $%X,Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("and $%04x, Y\n", absoluteIndexedAddress(c.Y))
 	case 0x21:
-		fmt.Printf("AND ($%X,X)\n", indexedIndirectAddress())
+		fmt.Printf("and ($%02x, X)\n", indexedIndirectAddress())
 	case 0x31:
-		fmt.Printf("AND ($%X),Y\n", indirectIndexedAddress())
+		fmt.Printf("and ($%02x), Y\n", indirectIndexedAddress())
 	// ORA
 	case 0x09:
-		fmt.Printf("ORA $%X\n", immediateAddress())
+		fmt.Printf("ORA $%x\n", immediateAddress())
 	case 0x05:
-		fmt.Printf("ORA $%X\n", zeroPageAddress())
+		fmt.Printf("ORA $%x\n", zeroPageAddress())
 	case 0x15:
-		fmt.Printf("ORA $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("ORA $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0x0d:
-		fmt.Printf("ORA $%X\n", absoluteAddress())
+		fmt.Printf("ORA $%x\n", absoluteAddress())
 	case 0x1d:
-		fmt.Printf("ORA $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("ORA $%x,X\n", absoluteIndexedAddress(c.X))
 	case 0x19:
-		fmt.Printf("ORA $%X,Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("ORA $%x,Y\n", absoluteIndexedAddress(c.Y))
 	case 0x01:
-		fmt.Printf("ORA ($%X,X)\n", indexedIndirectAddress())
+		fmt.Printf("ORA ($%x,X)\n", indexedIndirectAddress())
 	case 0x11:
-		fmt.Printf("ORA ($%X),Y\n", indirectIndexedAddress())
+		fmt.Printf("ORA ($%x),Y\n", indirectIndexedAddress())
 	// EOR
 	case 0x49:
-		fmt.Printf("EOR $%X\n", immediateAddress())
+		fmt.Printf("EOR $%x\n", immediateAddress())
 	case 0x45:
-		fmt.Printf("EOR $%X\n", zeroPageAddress())
+		fmt.Printf("EOR $%x\n", zeroPageAddress())
 	case 0x55:
-		fmt.Printf("EOR $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("EOR $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0x4d:
-		fmt.Printf("EOR $%X\n", absoluteAddress())
+		fmt.Printf("EOR $%x\n", absoluteAddress())
 	case 0x5d:
-		fmt.Printf("EOR $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("EOR $%x,X\n", absoluteIndexedAddress(c.X))
 	case 0x59:
-		fmt.Printf("EOR $%X,Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("EOR $%x,Y\n", absoluteIndexedAddress(c.Y))
 	case 0x41:
-		fmt.Printf("EOR ($%X,X)\n", indexedIndirectAddress())
+		fmt.Printf("EOR ($%x,X)\n", indexedIndirectAddress())
 	case 0x51:
-		fmt.Printf("EOR ($%X),Y\n", indirectIndexedAddress())
-	// DEC
+		fmt.Printf("EOR ($%x),Y\n", indirectIndexedAddress())
+	// dec
 	case 0xc6:
-		fmt.Printf("DEC $%X\n", zeroPageAddress())
+		fmt.Printf("dec $%02x\n", zeroPageAddress())
 	case 0xd6:
-		fmt.Printf("DEC $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("dec $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0xce:
-		fmt.Printf("DEC $%X\n", absoluteAddress())
+		fmt.Printf("dec $%04x\n", absoluteAddress())
 	case 0xde:
-		fmt.Printf("DEC $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("dec $%04x, X\n", absoluteIndexedAddress(c.X))
 	// INC
 	case 0xe6:
-		fmt.Printf("INC $%X\n", zeroPageAddress())
+		fmt.Printf("INC $%x\n", zeroPageAddress())
 	case 0xf6:
-		fmt.Printf("INC $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("INC $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0xee:
-		fmt.Printf("INC $%X\n", absoluteAddress())
+		fmt.Printf("INC $%x\n", absoluteAddress())
 	case 0xfe:
-		fmt.Printf("INC $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("INC $%x,X\n", absoluteIndexedAddress(c.X))
 	// BRK
 	case 0x00:
 		fmt.Println("BRK")
@@ -378,50 +373,50 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	case 0x4a:
 		fmt.Println("LSR A")
 	case 0x46:
-		fmt.Printf("LSR $%X\n", zeroPageAddress())
+		fmt.Printf("LSR $%x\n", zeroPageAddress())
 	case 0x56:
-		fmt.Printf("LSR $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("LSR $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0x4e:
-		fmt.Printf("LSR $%X\n", absoluteAddress())
+		fmt.Printf("LSR $%x\n", absoluteAddress())
 	case 0x5e:
-		fmt.Printf("LSR $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("LSR $%x,X\n", absoluteIndexedAddress(c.X))
 	// ASL
 	case 0x0a:
 		fmt.Println("ASL A")
 	case 0x06:
-		fmt.Printf("ASL $%X\n", zeroPageAddress())
+		fmt.Printf("ASL $%x\n", zeroPageAddress())
 	case 0x16:
-		fmt.Printf("ASL $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("ASL $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0x0e:
-		fmt.Printf("ASL $%X\n", absoluteAddress())
+		fmt.Printf("ASL $%x\n", absoluteAddress())
 	case 0x1e:
-		fmt.Printf("ASL $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("ASL $%x,X\n", absoluteIndexedAddress(c.X))
 	// ROL
 	case 0x2a:
 		fmt.Println("ROL A")
 	case 0x26:
-		fmt.Printf("ROL $%X\n", zeroPageAddress())
+		fmt.Printf("ROL $%x\n", zeroPageAddress())
 	case 0x36:
-		fmt.Printf("ROL $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("ROL $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0x2e:
-		fmt.Printf("ROL $%X\n", absoluteAddress())
+		fmt.Printf("ROL $%x\n", absoluteAddress())
 	case 0x3e:
-		fmt.Printf("ROL $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("ROL $%x,X\n", absoluteIndexedAddress(c.X))
 	// ROR
 	case 0x6a:
 		fmt.Println("ROR A")
 	case 0x66:
-		fmt.Printf("ROR $%X\n", zeroPageAddress())
+		fmt.Printf("ROR $%x\n", zeroPageAddress())
 	case 0x76:
-		fmt.Printf("ROR $%X,X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("ROR $%x,X\n", zeroPageIndexedAddress(c.X))
 	case 0x6e:
-		fmt.Printf("ROR $%X\n", absoluteAddress())
+		fmt.Printf("ROR $%x\n", absoluteAddress())
 	case 0x7e:
-		fmt.Printf("ROR $%X,X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("ROR $%x,X\n", absoluteIndexedAddress(c.X))
 	// BIT
 	case 0x24:
-		fmt.Printf("BIT $%X\n", zeroPageAddress())
+		fmt.Printf("BIT $%x\n", zeroPageAddress())
 	case 0x2c:
-		fmt.Printf("BIT $%X\n", absoluteAddress())
+		fmt.Printf("BIT $%x\n", absoluteAddress())
 	}
 }
