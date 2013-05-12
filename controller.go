@@ -92,21 +92,21 @@ func (c *Controller) SetJoypadButtonState(k int, v Word, offset int) {
 
 func (c *Controller) SetButtonState(k sdl.KeyboardEvent, v Word, offset int) {
 	switch k.Keysym.Sym {
-	case sdl.K_z: // A
+	case sdl.K_h: // A
 		c.ButtonState[0+offset] = v
-	case sdl.K_x: // B
+	case sdl.K_t: // B
 		c.ButtonState[1+offset] = v
-	case sdl.K_RSHIFT: // Select
+	case sdl.K_LSHIFT: // Select
 		c.ButtonState[2+offset] = v
 	case sdl.K_RETURN: // Start
 		c.ButtonState[3+offset] = v
-	case sdl.K_UP: // Up
+	case sdl.K_COMMA: // Up
 		c.ButtonState[4+offset] = v
-	case sdl.K_DOWN: // Down
+	case sdl.K_o: // Down
 		c.ButtonState[5+offset] = v
-	case sdl.K_LEFT: // Left
+	case sdl.K_a: // Left
 		c.ButtonState[6+offset] = v
-	case sdl.K_RIGHT: // Right
+	case sdl.K_e: // Right
 		c.ButtonState[7+offset] = v
 	}
 }
