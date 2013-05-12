@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 const (
 	StatusSpriteOverflow = iota
 	StatusSprite0Hit
@@ -359,6 +361,7 @@ func (p *Ppu) WriteControl(v Word) {
 	p.NmiOnVblank = (v >> 7) & 0x01
 
 	p.VramLatch = (p.VramLatch & 0xF3FF) | (int(p.BaseNametableAddress) << 10)
+	fmt.Printf("ppu_write_control %x\n", v)
 }
 
 // $2001
@@ -383,6 +386,8 @@ func (p *Ppu) WriteMask(v Word) {
 	p.IntensifyReds = (((v >> 5) & 0x01) == 0x01)
 	p.IntensifyGreens = (((v >> 6) & 0x01) == 0x01)
 	p.IntensifyBlues = (((v >> 7) & 0x01) == 0x01)
+
+	fmt.Printf("ppu_write_mask %x\n", v)
 }
 
 func (p *Ppu) clearStatus(s Word) {
@@ -431,12 +436,14 @@ func (p *Ppu) ReadStatus() (s Word, e error) {
 		p.clearStatus(StatusVblankStarted)
 	}
 
+	fmt.Printf("ppu_read_status %x\n", s)
 	return
 }
 
 // $2003
 func (p *Ppu) WriteOamAddress(v Word) {
 	p.SpriteRamAddress = int(v)
+	fmt.Printf("ppu_write_oamaddr %x\n", v)
 }
 
 // $2004
@@ -447,6 +454,7 @@ func (p *Ppu) WriteOamData(v Word) {
 
 	p.SpriteRamAddress++
 	p.SpriteRamAddress %= 0x100
+	fmt.Printf("ppu_write_oamdata %x\n", v)
 }
 
 // $4014
@@ -496,6 +504,7 @@ func (p *Ppu) WriteScroll(v Word) {
 	}
 
 	p.WriteLatch = !p.WriteLatch
+	fmt.Printf("ppu_write_scroll %x\n", v)
 }
 
 // $2006
@@ -510,6 +519,7 @@ func (p *Ppu) WriteAddress(v Word) {
 	}
 
 	p.WriteLatch = !p.WriteLatch
+	fmt.Printf("ppu_write_address %x\n", v)
 }
 
 // $2007
@@ -527,6 +537,7 @@ func (p *Ppu) WriteData(v Word) {
 	}
 
 	p.incrementVramAddress()
+	fmt.Printf("ppu_write_data %x\n", v)
 }
 
 func triggerMapperLatch(i int) {
@@ -718,12 +729,6 @@ func (p *Ppu) evaluateScanlineSprites(line int) {
 			t := p.SpriteData.Tiles[i]
 
 			c := (line - 1) - int(y)
-
-			// TODO: Hack to fix random sprite appearing in upper
-			// left. It should be cropped by overscan.
-			if p.XCoordinates[i] == 0 && p.YCoordinates[i] == 0 {
-				continue
-			}
 
 			var ycoord int
 
