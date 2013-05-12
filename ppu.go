@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 const (
 	StatusSpriteOverflow = iota
 	StatusSprite0Hit
@@ -122,10 +124,13 @@ func (p *Ppu) Init() chan []uint32 {
 func (p *Ppu) PpuRegRead(a int) (Word, error) {
 	switch a & 0x7 {
 	case 0x2:
+		fmt.Printf("ppu_read_status\n")
 		return p.ReadStatus()
 	case 0x4:
+		fmt.Printf("ppu_read_oamdata\n")
 		return p.ReadOamData()
 	case 0x7:
+		fmt.Printf("ppu_read_data\n")
 		return p.ReadData()
 	}
 
@@ -135,22 +140,30 @@ func (p *Ppu) PpuRegRead(a int) (Word, error) {
 func (p *Ppu) PpuRegWrite(v Word, a int) {
 	switch a & 0x7 {
 	case 0x0:
+		fmt.Printf("ppu_write_control\n")
 		p.WriteControl(v)
 	case 0x1:
+		fmt.Printf("ppu_write_mask\n")
 		p.WriteMask(v)
 	case 0x3:
+		fmt.Printf("ppu_write_oamaddr\n")
 		p.WriteOamAddress(v)
 	case 0x4:
+		fmt.Printf("ppu_write_oamdata\n")
 		p.WriteOamData(v)
 	case 0x5:
+		fmt.Printf("ppu_write_scroll\n")
 		p.WriteScroll(v)
 	case 0x6:
+		fmt.Printf("ppu_write_address\n")
 		p.WriteAddress(v)
 	case 0x7:
+		fmt.Printf("ppu_write_data\n")
 		p.WriteData(v)
 	}
 
 	if a == 0x4014 {
+		fmt.Printf("ppu_write_dma\n")
 		p.WriteDma(v)
 	}
 }
