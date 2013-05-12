@@ -36,14 +36,6 @@ func WriteVramBank(rom [][]uint8, bank, dest, size int) {
 	}
 }
 
-func WriteOffsetVramBank(rom [][]uint8, bank, dest, size, offset int) {
-	bank %= len(rom)
-
-	for i := 0; i < size; i++ {
-		ppu.Vram[i+dest] = rom[bank][i+offset]
-	}
-}
-
 func (m *Rom) BatteryBacked() bool {
 	return m.Battery
 }
