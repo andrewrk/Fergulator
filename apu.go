@@ -505,6 +505,7 @@ func (a *Apu) FrameSequencerStep() {
 func (a *Apu) RegRead(addr int) (Word, error) {
 	switch addr {
 	case 0x4015:
+		fmt.Println("rom_apu_read_status")
 		return a.ReadStatus(), nil
 	}
 
@@ -514,44 +515,64 @@ func (a *Apu) RegRead(addr int) (Word, error) {
 func (a *Apu) RegWrite(v Word, addr int) {
 	switch addr & 0xFF {
 	case 0x0:
+		fmt.Println("rom_apu_write_square1control")
 		a.WriteSquare1Control(v)
 	case 0x1:
+		fmt.Println("rom_apu_write_square1sweeps")
 		a.WriteSquare1Sweeps(v)
 	case 0x2:
+		fmt.Println("rom_apu_write_square1low")
 		a.WriteSquare1Low(v)
 	case 0x3:
+		fmt.Println("rom_apu_write_square1high")
 		a.WriteSquare1High(v)
 	case 0x4:
+		fmt.Println("rom_apu_write_square2control")
 		a.WriteSquare2Control(v)
 	case 0x5:
+		fmt.Println("rom_apu_write_square2sweeps")
 		a.WriteSquare2Sweeps(v)
 	case 0x6:
+		fmt.Println("rom_apu_write_square2low")
 		a.WriteSquare2Low(v)
 	case 0x7:
+		fmt.Println("rom_apu_write_square2high")
 		a.WriteSquare2High(v)
 	case 0x8:
+		fmt.Println("rom_apu_write_trianglecontrol")
 		a.WriteTriangleControl(v)
 	case 0xA:
+		fmt.Println("rom_apu_write_trianglelow")
 		a.WriteTriangleLow(v)
 	case 0xB:
+		fmt.Println("rom_apu_write_trianglehigh")
 		a.WriteTriangleHigh(v)
 	case 0xC:
+		fmt.Println("rom_apu_write_noisebase")
 		a.WriteNoiseBase(v)
 	case 0xE:
+		fmt.Println("rom_apu_write_noiseperiod")
 		a.WriteNoisePeriod(v)
 	case 0xF:
+		fmt.Println("rom_apu_write_noiselength")
 		a.WriteNoiseLength(v)
 	case 0x10:
+		fmt.Println("rom_apu_write_dmcflags")
 		a.WriteDmcFlags(v)
 	case 0x11:
+		fmt.Println("rom_apu_write_dmcdirectload")
 		a.WriteDmcDirectLoad(v)
 	case 0x12:
+		fmt.Println("rom_apu_write_dmcsampleaddress")
 		a.WriteDmcSampleAddress(v)
 	case 0x13:
+		fmt.Println("rom_apu_write_dmcsamplelength")
 		a.WriteDmcSampleLength(v)
 	case 0x15:
+		fmt.Println("rom_apu_write_controlflags1")
 		a.WriteControlFlags1(v)
 	case 0x17:
+		fmt.Println("rom_apu_write_controlflags2")
 		a.WriteControlFlags2(v)
 	}
 }

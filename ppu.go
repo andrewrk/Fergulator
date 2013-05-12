@@ -158,12 +158,12 @@ func (p *Ppu) PpuRegWrite(v Word, a int) {
 		fmt.Printf("ppu_write_address\n")
 		p.WriteAddress(v)
 	case 0x7:
-		fmt.Printf("ppu_write_data\n")
+		fmt.Printf("ppu_write_data $%02x\n", v)
 		p.WriteData(v)
 	}
 
 	if a == 0x4014 {
-		fmt.Printf("ppu_write_dma\n")
+		fmt.Printf("rom_ppu_write_dma\n")
 		p.WriteDma(v)
 	}
 }

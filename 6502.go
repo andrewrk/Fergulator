@@ -572,10 +572,7 @@ func (c *Cpu) Php() {
 }
 
 func (c *Cpu) Plp() {
-	val := c.pullFromStack()
-
-	// Unset bit 5 since it's unused in the NES
-	c.P = (val | 0x30) - 0x10
+	c.P = c.pullFromStack()
 }
 
 func (c *Cpu) Compare(register Word, value Word) {
@@ -964,7 +961,7 @@ func (c *Cpu) Reset() {
 	c.Y = 0
 	c.A = 0
 	c.CycleCount = 0
-	c.P = 0x34
+	c.P = 0x14
 	c.StackPointer = 0xFD
 
 	c.Accurate = true

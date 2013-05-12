@@ -52,7 +52,7 @@ func (m *Memory) WriteMirroredRam(v Word, a int) {
 }
 
 func (m *Memory) Write(address interface{}, val Word) error {
-	//fmt.Printf("store $%04x #$%02x\n", address, val)
+	fmt.Printf("store %x in %x\n", val, address)
 	if a, err := fitAddressSize(address); err == nil {
 		if a >= 0x2008 && a < 0x4000 {
 			fmt.Printf("Address write: 0x%X\n", a)
