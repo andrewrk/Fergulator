@@ -22,7 +22,7 @@ func (v *Video) Init(t <-chan []uint32, n string) chan [2]int {
 	v.tick = t
 	v.resize = make(chan [2]int)
 
-	if sdl.Init(sdl.INIT_VIDEO|sdl.INIT_JOYSTICK|sdl.INIT_AUDIO) != 0 {
+	if sdl.Init(sdl.INIT_VIDEO|sdl.INIT_AUDIO) != 0 {
 		log.Fatal(sdl.GetError())
 	}
 
@@ -45,23 +45,6 @@ func (v *Video) Init(t <-chan []uint32, n string) chan [2]int {
 
 	v.fpsmanager = gfx.NewFramerate()
 	v.fpsmanager.SetFramerate(70)
-
-	joy = make([]*sdl.Joystick, sdl.NumJoysticks())
-
-	for i := 0; i < sdl.NumJoysticks(); i++ {
-		joy[i] = sdl.JoystickOpen(i)
-
-		fmt.Println("-----------------")
-		if joy[i] != nil {
-			fmt.Printf("Joystick %d\n", i)
-			fmt.Println("  Name: ", sdl.JoystickName(0))
-			fmt.Println("  Number of Axes: ", joy[i].NumAxes())
-			fmt.Println("  Number of Buttons: ", joy[i].NumButtons())
-			fmt.Println("  Number of Balls: ", joy[i].NumBalls())
-		} else {
-			fmt.Println("  Couldn't open Joystick!")
-		}
-	}
 
 	return v.resize
 }
