@@ -64,10 +64,9 @@ func (m *Memory) Write(address interface{}, val Word) error {
 			ppu.PpuRegWrite(val, a)
 			m[a] = val
 		} else if a == 0x4016 {
-			pads[0].Write(val)
+			pads.Write(val)
 			m[a] = val
 		} else if a == 0x4017 {
-			pads[1].Write(val)
 			apu.RegWrite(val, a)
 			m[a] = val
 		} else if a&0xF000 == 0x4000 {
@@ -98,9 +97,9 @@ func (m *Memory) Read(address interface{}) (Word, error) {
 		//ppu.Run(cpu.Timestamp)
 		return ppu.PpuRegRead(a)
 	} else if a == 0x4016 {
-		return pads[0].Read(), nil
+		return pads.Read(0), nil
 	} else if a == 0x4017 {
-		return pads[1].Read(), nil
+		return pads.Read(1), nil
 	} else if a&0xF000 == 0x4000 {
 		return apu.RegRead(a)
 	}
