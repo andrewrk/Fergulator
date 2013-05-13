@@ -118,17 +118,7 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	case 0xA1:
 		fmt.Printf("lda ($%02x, X)\n", indexedIndirectAddress())
 	case 0xB1:
-
-		// TODO remove this
-		loc, _ := Ram.Read(pc)
-		low, _ := Ram.Read(loc)
-		high, _ := Ram.Read(loc + 1)
-		base := (int(high) << 8) + int(low)
-		addr := base + int(c.Y)
-		val, _ := Ram.Read(addr)
-
 		fmt.Printf("lda ($%02x), Y\n", indirectIndexedAddress())
-		fmt.Printf("pc $%x  loc $%x  base $%x  y $%x  addr $%x  val $%x\n", pc-1, loc, base, c.Y, addr, val)
 	// LDX
 	case 0xA2:
 		fmt.Printf("ldx #$%02x\n", immediateAddress())
@@ -236,17 +226,17 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	case 0xC5:
 		fmt.Printf("cmp $%02x\n", zeroPageAddress())
 	case 0xD5:
-		fmt.Printf("cmp $%x, X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("cmp $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0xCD:
-		fmt.Printf("cmp $%x\n", absoluteAddress())
+		fmt.Printf("cmp $%04x\n", absoluteAddress())
 	case 0xDD:
-		fmt.Printf("cmp $%x, X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("cmp $%04x, X\n", absoluteIndexedAddress(c.X))
 	case 0xD9:
-		fmt.Printf("cmp $%x, Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("cmp $%04x, Y\n", absoluteIndexedAddress(c.Y))
 	case 0xC1:
-		fmt.Printf("cmp ($%x, X)\n", indexedIndirectAddress())
+		fmt.Printf("cmp ($%02x, X)\n", indexedIndirectAddress())
 	case 0xD1:
-		fmt.Printf("cmp ($%x), Y\n", c.indirectIndexedAddress())
+		fmt.Printf("cmp ($%02x), Y\n", c.indirectIndexedAddress())
 	// CPX
 	case 0xE0:
 		fmt.Printf("cpx #$%02x\n", immediateAddress())
@@ -256,11 +246,11 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 		fmt.Printf("cpx $%04x\n", absoluteAddress())
 	// CPY
 	case 0xC0:
-		fmt.Printf("cpy #$%x\n", immediateAddress())
+		fmt.Printf("cpy #$%02x\n", immediateAddress())
 	case 0xC4:
 		fmt.Printf("cpy $%02x\n", zeroPageAddress())
 	case 0xCC:
-		fmt.Printf("cpy $%x\n", absoluteAddress())
+		fmt.Printf("cpy $%04x\n", absoluteAddress())
 	// SBC
 	case 0xE9:
 		fmt.Printf("sbc #$%x\n", immediateAddress())
@@ -381,8 +371,6 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	// RTI
 	case 0x40:
 		fmt.Println("rti")
-		// TODO: remove this
-		fmt.Printf("pc $%x  status $%x  sp $%x\n", pc-1, cpu.P, cpu.StackPointer)
 	// RTS
 	case 0x60:
 		fmt.Println("rts")

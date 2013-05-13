@@ -52,7 +52,7 @@ func (m *Memory) WriteMirroredRam(v Word, a int) {
 }
 
 func (m *Memory) Write(address interface{}, val Word) error {
-	fmt.Printf("store %x in %x\n", val, address)
+	fmt.Printf("store $%02x in $%04x\n", val, address)
 	if a, err := fitAddressSize(address); err == nil {
 		if a >= 0x2008 && a < 0x4000 {
 			fmt.Printf("Address write: 0x%X\n", a)
@@ -98,8 +98,11 @@ func (m *Memory) Read(address interface{}) (Word, error) {
 		//ppu.Run(cpu.Timestamp)
 		return ppu.PpuRegRead(a)
 	} else if a == 0x4016 {
-		return pads.Read(0), nil
+		v := pads.Read(0)
+		fmt.Printf("pad_read1 $%02x\n", v)
+		return v, nil
 	} else if a == 0x4017 {
+		fmt.Printf("pad_read2\n")
 		return pads.Read(1), nil
 	} else if a&0xF000 == 0x4000 {
 		return apu.RegRead(a)

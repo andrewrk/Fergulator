@@ -1,6 +1,6 @@
 package main
 
-//import "fmt"
+import "fmt"
 
 const (
 	InterruptNone = iota
@@ -718,6 +718,8 @@ func (c *Cpu) Jsr(location uint16) {
 	high := (ProgramCounter - 1) >> 8
 	low := (ProgramCounter - 1) & 0xFF
 
+	fmt.Printf("jsr: saving $%04x\n", ProgramCounter - 1)
+
 	c.pushToStack(Word(high))
 	c.pushToStack(Word(low))
 
@@ -738,6 +740,7 @@ func (c *Cpu) Rts() {
 	high := c.pullFromStack()
 
 	ProgramCounter = ((uint16(high) << 8) + uint16(low)) + 1
+	fmt.Printf("rts: new pc $%04x\n", ProgramCounter)
 }
 
 func (c *Cpu) Lsr(location uint16) {
@@ -819,6 +822,7 @@ func (c *Cpu) Rol(location uint16) {
 	Ram.Write(location, value)
 
 	value, _ = Ram.Read(location)
+
 	c.testAndSetNegative(value)
 	c.testAndSetZero(value)
 }
@@ -1002,6 +1006,9 @@ func (c *Cpu) Step() int {
 
 	c.InstrOpcodes[opcode]()
 	c.Timestamp = (c.CycleCount * 15)
+
+	fmt.Printf("cycles %d\n", c.CycleCount)
+	fmt.Printf("A $%02x  X $%02x  Y $%02x  P $%02x  PC $%04x  SP $%02x\n", c.A, c.X, c.Y, c.P, ProgramCounter, c.StackPointer)
 
 	return c.CycleCount
 }

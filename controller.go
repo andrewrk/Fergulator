@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/scottferg/Go-SDL/sdl"
+	"fmt"
 )
 
 const (
@@ -33,6 +34,16 @@ var keyToBtn = map[uint32]int{
 	sdl.K_e: PadBtnRight,
 }
 
+func (c *Controller) Init() {
+	for padIndex := 0; padIndex <= 1; padIndex++ {
+		for i := 0; i < 8; i++ {
+			c.ActualButtonState[padIndex][i] = 0x40
+			c.ReportedButtonState[padIndex][i] = 0x40
+		}
+	}
+}
+
+
 func (c *Controller) SetButtonState(k sdl.KeyboardEvent, state Word) {
 	btn, ok := keyToBtn[k.Keysym.Sym]
 	if !ok {
@@ -45,6 +56,7 @@ func (c *Controller) SetButtonState(k sdl.KeyboardEvent, state Word) {
 }
 
 func (c *Controller) Write(v Word) {
+	fmt.Printf("pad_write $%02x\n", v)
 	c.StrobeOn = v&0x1 == 1
 	if c.StrobeOn {
 		// copy actual to reported

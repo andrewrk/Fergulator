@@ -204,6 +204,7 @@ func main() {
 	}
 
 	pads = new(Controller)
+	pads.Init()
 
 	Ram.Init()
 	cpu.Init()
@@ -259,8 +260,6 @@ func main() {
 				}
 			default:
 				cycles = cpu.Step()
-				fmt.Printf("cycles %d\n", cycles)
-				fmt.Printf("status %x\n", cpu.P)
 				totalCpuCycles += cycles
 
 				for i := 0; i < 3*cycles; i++ {
