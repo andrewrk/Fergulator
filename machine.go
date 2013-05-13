@@ -10,6 +10,8 @@ import (
 	"runtime"
 	"runtime/pprof"
 	"strings"
+	"bufio"
+	"encoding/binary"
 )
 
 var (
@@ -32,12 +34,46 @@ var (
 	batteryRamFile string
 
 	cpuprofile = flag.String("cprof", "", "write cpu profile to file")
+
+	movie []MovieFrame
 )
+
+type MovieFrame struct {
+	Cycle uint64
+	PadIndex uint8
+	ButtonIndex uint8
+	ButtonState uint8
+}
 
 const (
 	SaveState = iota
 	LoadState
 )
+
+func saveMovie() {
+	fmt.Fprintf(os.Stderr, "saving\n")
+	fd, err := os.Create("rom_movie")
+	if err != nil {
+		panic(err)
+	}
+	writer := bufio.NewWriter(fd)
+	err = binary.Write(writer, binary.LittleEndian, uint64(len(movie)))
+	if err != nil {
+		panic(err)
+	}
+	for _, frame := range movie {
+		err = binary.Write(writer, binary.LittleEndian, frame)
+		if err != nil {
+			panic(err)
+		}
+	}
+	writer.Flush()
+	err = fd.Close()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprintf(os.Stderr, "done. %d frames\n", len(movie))
+}
 
 func setResetVector() {
 	high, _ := Ram.Read(0xFFFD)

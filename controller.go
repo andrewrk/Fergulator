@@ -49,6 +49,12 @@ func (c *Controller) SetButtonState(k sdl.KeyboardEvent, state Word) {
 	if !ok {
 		return
 	}
+	movie = append(movie, MovieFrame{
+		uint64(totalCpuCycles),
+		0,
+		uint8(btn),
+		uint8(state),
+	})
 	c.ActualButtonState[0][btn] = state
 	if c.StrobeOn {
 		c.ReportedButtonState[0][btn] = state
@@ -94,6 +100,10 @@ func ReadInput(r chan [2]int, i chan int) {
 				video.Close()
 			case sdl.KeyboardEvent:
 				switch e.Keysym.Sym {
+				case sdl.K_SPACE:
+					saveMovie()
+					running = false
+					video.Close()
 				case sdl.K_ESCAPE:
 					running = false
 				case sdl.K_r:
