@@ -93,15 +93,15 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	case 0x75:
 		fmt.Printf("adc $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0x6D:
-		fmt.Printf("adc $%x\n", absoluteAddress())
+		fmt.Printf("adc $%04x\n", absoluteAddress())
 	case 0x7D:
-		fmt.Printf("adc $%x, X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("adc $%04x, X\n", absoluteIndexedAddress(c.X))
 	case 0x79:
-		fmt.Printf("adc $%x, Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("adc $%04x, Y\n", absoluteIndexedAddress(c.Y))
 	case 0x61:
-		fmt.Printf("adc ($%x, X)\n", indexedIndirectAddress())
+		fmt.Printf("adc ($%02x, X)\n", indexedIndirectAddress())
 	case 0x71:
-		fmt.Printf("adc ($%x), Y\n", indirectIndexedAddress())
+		fmt.Printf("adc ($%02x), Y\n", indirectIndexedAddress())
 	// LDA
 	case 0xA9:
 		fmt.Printf("lda #$%02x\n", immediateAddress())
@@ -125,22 +125,22 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	case 0xA6:
 		fmt.Printf("ldx $%02x\n", zeroPageAddress())
 	case 0xB6:
-		fmt.Printf("ldx $%x, X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("ldx $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0xAE:
-		fmt.Printf("ldx $%x\n", absoluteAddress())
+		fmt.Printf("ldx $%04x\n", absoluteAddress())
 	case 0xBE:
-		fmt.Printf("ldx $%x, Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("ldx $%04x, Y\n", absoluteIndexedAddress(c.Y))
 	// LDY
 	case 0xA0:
 		fmt.Printf("ldy #$%02x\n", immediateAddress())
 	case 0xA4:
 		fmt.Printf("ldy $%02x\n", zeroPageAddress())
 	case 0xB4:
-		fmt.Printf("ldy $%x, X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("ldy $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0xAC:
-		fmt.Printf("ldy $%x\n", absoluteAddress())
+		fmt.Printf("ldy $%04x\n", absoluteAddress())
 	case 0xBC:
-		fmt.Printf("ldy $%x, X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("ldy $%04x, X\n", absoluteIndexedAddress(c.X))
 	// STA
 	case 0x85:
 		fmt.Printf("sta $%02x\n", zeroPageAddress())
@@ -168,9 +168,9 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	case 0x86:
 		fmt.Printf("stx $%02x\n", zeroPageAddress())
 	case 0x96:
-		fmt.Printf("stx $%x, X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("stx $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0x8E:
-		fmt.Printf("stx $%x\n", absoluteAddress())
+		fmt.Printf("stx $%04x\n", absoluteAddress())
 	// STY
 	case 0x84:
 		fmt.Printf("sty $%02x\n", zeroPageAddress())
@@ -180,12 +180,12 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 		fmt.Printf("sty $%04x\n", absoluteAddress())
 	// JMP
 	case 0x4C:
-		fmt.Printf("jmp $%x\n", absoluteAddress())
+		fmt.Printf("jmp $%04x\n", absoluteAddress())
 	case 0x6C:
-		fmt.Printf("jmp $%x\n", indirectAbsoluteAddress())
+		fmt.Printf("jmp $%04x\n", indirectAbsoluteAddress())
 	// JSR
 	case 0x20:
-		fmt.Printf("jsr $%x\n", absoluteAddress())
+		fmt.Printf("jsr $%04x\n", absoluteAddress())
 	// Register Instructions
 	case 0xAA:
 		fmt.Println("tax")
@@ -253,21 +253,21 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 		fmt.Printf("cpy $%04x\n", absoluteAddress())
 	// SBC
 	case 0xE9:
-		fmt.Printf("sbc #$%x\n", immediateAddress())
+		fmt.Printf("sbc #$%02x\n", immediateAddress())
 	case 0xE5:
 		fmt.Printf("sbc $%02x\n", zeroPageAddress())
 	case 0xF5:
-		fmt.Printf("sbc $%x, X\n", zeroPageIndexedAddress(c.X))
+		fmt.Printf("sbc $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0xED:
-		fmt.Printf("sbc $%x\n", absoluteAddress())
+		fmt.Printf("sbc $%04x\n", absoluteAddress())
 	case 0xFD:
-		fmt.Printf("sbc $%x, X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("sbc $%04x, X\n", absoluteIndexedAddress(c.X))
 	case 0xF9:
-		fmt.Printf("sbc $%x, Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("sbc $%04x, Y\n", absoluteIndexedAddress(c.Y))
 	case 0xE1:
-		fmt.Printf("sbc ($%x, X)\n", indexedIndirectAddress())
+		fmt.Printf("sbc ($%02x, X)\n", indexedIndirectAddress())
 	case 0xF1:
-		fmt.Printf("sbc ($%x), Y\n", indirectIndexedAddress())
+		fmt.Printf("sbc ($%02x), Y\n", indirectIndexedAddress())
 	// Flag Instructions
 	case 0x18:
 		fmt.Println("clc")
@@ -315,38 +315,38 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 		fmt.Printf("and ($%02x), Y\n", indirectIndexedAddress())
 	// ORA
 	case 0x09:
-		fmt.Printf("ora #$%x\n", immediateAddress())
+		fmt.Printf("ora #$%02x\n", immediateAddress())
 	case 0x05:
 		fmt.Printf("ora $%02x\n", zeroPageAddress())
 	case 0x15:
 		fmt.Printf("ora $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0x0d:
-		fmt.Printf("ora $%x\n", absoluteAddress())
+		fmt.Printf("ora $%04x\n", absoluteAddress())
 	case 0x1d:
-		fmt.Printf("ora $%x, X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("ora $%04x, X\n", absoluteIndexedAddress(c.X))
 	case 0x19:
-		fmt.Printf("ora $%x, Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("ora $%04x, Y\n", absoluteIndexedAddress(c.Y))
 	case 0x01:
-		fmt.Printf("ora ($%x, X)\n", indexedIndirectAddress())
+		fmt.Printf("ora ($%02x, X)\n", indexedIndirectAddress())
 	case 0x11:
-		fmt.Printf("ora ($%x), Y\n", indirectIndexedAddress())
+		fmt.Printf("ora ($%02x), Y\n", indirectIndexedAddress())
 	// EOR
 	case 0x49:
-		fmt.Printf("eor #$%x\n", immediateAddress())
+		fmt.Printf("eor #$%02x\n", immediateAddress())
 	case 0x45:
 		fmt.Printf("eor $%02x\n", zeroPageAddress())
 	case 0x55:
 		fmt.Printf("eor $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0x4d:
-		fmt.Printf("eor $%x\n", absoluteAddress())
+		fmt.Printf("eor $%04x\n", absoluteAddress())
 	case 0x5d:
-		fmt.Printf("eor $%x, X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("eor $%04x, X\n", absoluteIndexedAddress(c.X))
 	case 0x59:
-		fmt.Printf("eor $%x, Y\n", absoluteIndexedAddress(c.Y))
+		fmt.Printf("eor $%04x, Y\n", absoluteIndexedAddress(c.Y))
 	case 0x41:
-		fmt.Printf("eor ($%x, X)\n", indexedIndirectAddress())
+		fmt.Printf("eor ($%02x, X)\n", indexedIndirectAddress())
 	case 0x51:
-		fmt.Printf("eor ($%x), Y\n", indirectIndexedAddress())
+		fmt.Printf("eor ($%02x), Y\n", indirectIndexedAddress())
 	// dec
 	case 0xc6:
 		fmt.Printf("dec $%02x\n", zeroPageAddress())
@@ -385,9 +385,9 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	case 0x56:
 		fmt.Printf("lsr $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0x4e:
-		fmt.Printf("lsr $%x\n", absoluteAddress())
+		fmt.Printf("lsr $%04x\n", absoluteAddress())
 	case 0x5e:
-		fmt.Printf("lsr $%x, X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("lsr $%04x, X\n", absoluteIndexedAddress(c.X))
 	// ASL
 	case 0x0a:
 		fmt.Println("asl")
@@ -396,9 +396,9 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	case 0x16:
 		fmt.Printf("asl $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0x0e:
-		fmt.Printf("asl $%x\n", absoluteAddress())
+		fmt.Printf("asl $%04x\n", absoluteAddress())
 	case 0x1e:
-		fmt.Printf("asl $%x, X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("asl $%04x, X\n", absoluteIndexedAddress(c.X))
 	// ROL
 	case 0x2a:
 		fmt.Println("rol")
@@ -407,9 +407,9 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	case 0x36:
 		fmt.Printf("rol $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0x2e:
-		fmt.Printf("rol $%x\n", absoluteAddress())
+		fmt.Printf("rol $%04x\n", absoluteAddress())
 	case 0x3e:
-		fmt.Printf("rol $%x, X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("rol $%04x, X\n", absoluteIndexedAddress(c.X))
 	// ROR
 	case 0x6a:
 		fmt.Println("ror")
@@ -418,13 +418,13 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	case 0x76:
 		fmt.Printf("ror $%02x, X\n", zeroPageIndexedAddress(c.X))
 	case 0x6e:
-		fmt.Printf("ror $%x\n", absoluteAddress())
+		fmt.Printf("ror $%04x\n", absoluteAddress())
 	case 0x7e:
-		fmt.Printf("ror $%x, X\n", absoluteIndexedAddress(c.X))
+		fmt.Printf("ror $%04x, X\n", absoluteIndexedAddress(c.X))
 	// BIT
 	case 0x24:
-		fmt.Printf("bit $%x\n", zeroPageAddress())
+		fmt.Printf("bit $%02x\n", zeroPageAddress())
 	case 0x2c:
-		fmt.Printf("bit $%x\n", absoluteAddress())
+		fmt.Printf("bit $%04x\n", absoluteAddress())
 	}
 }
