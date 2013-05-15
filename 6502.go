@@ -606,6 +606,9 @@ func (c *Cpu) Sbc(location uint16) {
 
 	c.A = c.A - (1 - c.P&0x01)
 
+
+	fmt.Printf("sbc oldA: $%02x newA: $%02x val: $%02x carry: $%02x\n", cache, c.A, val, c.P&0x01)
+
 	c.testAndSetNegative(c.A)
 	c.testAndSetZero(c.A)
 	c.testAndSetOverflowSubtraction(cache, val)

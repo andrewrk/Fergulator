@@ -155,15 +155,7 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	case 0x81:
 		fmt.Printf("sta ($%02x, X)\n", indexedIndirectAddress())
 	case 0x91:
-		// TODO remove this
-		loc, _ := Ram.Read(pc)
-		low, _ := Ram.Read(loc)
-		high, _ := Ram.Read(loc + 1)
-		base := (int(high) << 8) + int(low)
-		addr := base + int(c.Y)
-
 		fmt.Printf("sta ($%02x), Y\n", indirectIndexedAddress())
-		fmt.Printf("pc $%x  loc $%x  base $%x  y $%x  addr $%x  val $%x\n", pc-1, loc, base, c.Y, addr, c.A)
 	// STX
 	case 0x86:
 		fmt.Printf("stx $%02x\n", zeroPageAddress())
@@ -182,7 +174,7 @@ func Disassemble(opcode Word, cpu *Cpu, p uint16) {
 	case 0x4C:
 		fmt.Printf("jmp $%04x\n", absoluteAddress())
 	case 0x6C:
-		fmt.Printf("jmp $%04x\n", indirectAbsoluteAddress())
+		fmt.Printf("jmp ($%04x)\n", indirectAbsoluteAddress())
 	// JSR
 	case 0x20:
 		fmt.Printf("jsr $%04x\n", absoluteAddress())

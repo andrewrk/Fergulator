@@ -34,8 +34,10 @@ var (
 	batteryRamFile string
 
 	cpuprofile = flag.String("cprof", "", "write cpu profile to file")
+	moviePlayback = flag.String("movie", "", "movie to play back")
 
 	movie []MovieFrame
+	frameIndex int
 )
 
 type MovieFrame struct {
@@ -49,6 +51,36 @@ const (
 	SaveState = iota
 	LoadState
 )
+
+func loadMovie() {
+	frameIndex = 0
+	fd, err := os.Open(*moviePlayback)
+	if err != nil {
+		panic(err)
+	}
+	reader := bufio.NewReader(fd)
+	var movieLen uint64
+	binary.Read(reader, binary.LittleEndian, &movieLen)
+	movie = make([]MovieFrame, movieLen)
+	for i := range movie {
+		err = binary.Read(reader, binary.LittleEndian, &movie[i].Cycle)
+		if err != nil {
+			panic(err)
+		}
+		err = binary.Read(reader, binary.LittleEndian, &movie[i].PadIndex)
+		if err != nil {
+			panic(err)
+		}
+		err = binary.Read(reader, binary.LittleEndian, &movie[i].ButtonIndex)
+		if err != nil {
+			panic(err)
+		}
+		err = binary.Read(reader, binary.LittleEndian, &movie[i].ButtonState)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
 
 func saveMovie() {
 	fmt.Fprintf(os.Stderr, "saving\n")
@@ -238,6 +270,9 @@ func main() {
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
 	}
+	if *moviePlayback != "" {
+		loadMovie()
+	}
 
 	pads = new(Controller)
 	pads.Init()
@@ -295,6 +330,8 @@ func main() {
 					SaveGameState()
 				}
 			default:
+				setButtonStateFromMovie()
+
 				cycles = cpu.Step()
 				totalCpuCycles += cycles
 

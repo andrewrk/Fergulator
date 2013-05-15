@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/scottferg/Go-SDL/sdl"
 	"fmt"
+	"os"
 )
 
 const (
@@ -49,12 +50,18 @@ func (c *Controller) SetButtonState(k sdl.KeyboardEvent, state Word) {
 	if !ok {
 		return
 	}
-	movie = append(movie, MovieFrame{
-		uint64(totalCpuCycles),
-		0,
-		uint8(btn),
-		uint8(state),
-	})
+	if *moviePlayback == "" {
+		movie = append(movie, MovieFrame{
+			uint64(totalCpuCycles),
+			0,
+			uint8(btn),
+			uint8(state),
+		})
+	}
+	c.SetBtnState(btn, state)
+}
+
+func (c *Controller) SetBtnState(btn int, state Word) {
 	c.ActualButtonState[0][btn] = state
 	if c.StrobeOn {
 		c.ReportedButtonState[0][btn] = state
@@ -158,5 +165,21 @@ func ReadInput(r chan [2]int, i chan int) {
 				}
 			}
 		}
+	}
+}
+
+func setButtonStateFromMovie() {
+	if *moviePlayback == "" {
+		return
+	}
+	for frameIndex < len(movie) && uint64(totalCpuCycles) >= movie[frameIndex].Cycle {
+		fmt.Fprintf(os.Stderr, "frame %d at cycle %d\n", frameIndex, totalCpuCycles)
+		pads.SetBtnState(
+			int(movie[frameIndex].ButtonIndex),
+			Word(movie[frameIndex].ButtonState))
+		frameIndex += 1
+	}
+	if frameIndex >= len(movie) {
+		os.Exit(0)
 	}
 }
